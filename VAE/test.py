@@ -42,40 +42,39 @@ def test(experiment_dir: str, epoch: int = None):
 
         with torch.no_grad():
             batch_metrics = []
-            for j, (X, y) in enumerate(test_loader):
-                X, y = X.float().cuda(), y.float().cuda()                
-                outputs = model(X)
-                test_loss += criterion(outputs, y.long())              
-                targets_cpu = y.float().cpu()
+            for j, (X) in enumerate(test_loader):
+                X = X.float().cuda()         
+                test_loss += criterion(model, X)             
+          
                 batch_preds = []               
-                if len(test_metrics):
-                    metric_values = {}
-                    for metric_name, metric in test_metrics.items():
-                        metric_value = metric(torch.stack(batch_preds), targets_cpu)
-                        metric_values[metric_name] = metric_value
+                # if len(test_metrics):
+                #     metric_values = {}
+                #     for metric_name, metric in test_metrics.items():
+                #         metric_value = metric(torch.stack(batch_preds), targets_cpu)
+                #         metric_values[metric_name] = metric_value
 
-                        print(
-                            f"{metric_name}(Batch({j})): {metric_value}",
-                            file=test_metrics_file,
-                            end=" | ",
-                        )
-                    batch_metrics.append(metric_values)
+                #         print(
+                #             f"{metric_name}(Batch({j})): {metric_value}",
+                #             file=test_metrics_file,
+                #             end=" | ",
+                #         )
+                #     batch_metrics.append(metric_values)
 
-                    print(file=test_metrics_file)
+                #     print(file=test_metrics_file)
 
             print("Test loss: ", test_loss / len(test_loader))
-            if test_metrics_file:
-                test_metrics_file.close()
-                mean_metrics = {}
-                for key in batch_metrics[0].keys():
-                    mean_metrics[key] = sum(d[key] for d in batch_metrics) / len(
-                        batch_metrics
-                    )
+            # if test_metrics_file:
+            #     test_metrics_file.close()
+            #     mean_metrics = {}
+            #     for key in batch_metrics[0].keys():
+            #         mean_metrics[key] = sum(d[key] for d in batch_metrics) / len(
+            #             batch_metrics
+            #         )
 
-                with open(
-                    f"{experiment_dir}/avg_test_metrics_epoch-{epoch}.json"
-                    if epoch
-                    else f"{experiment_dir}/avg_test_metrics_best.json",
-                    "w",
-                ) as json_file:
-                    json.dump(mean_metrics, json_file, indent=2)
+            #     with open(
+            #         f"{experiment_dir}/avg_test_metrics_epoch-{epoch}.json"
+            #         if epoch
+            #         else f"{experiment_dir}/avg_test_metrics_best.json",
+            #         "w",
+            #     ) as json_file:
+            #         json.dump(mean_metrics, json_file, indent=2)
