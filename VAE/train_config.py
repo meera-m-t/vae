@@ -1,12 +1,11 @@
 from typing import Any, Callable, ClassVar, Dict, List, Optional, Type
-
 import torch.utils.data
 from pydantic import BaseModel, Field, ValidationError, validator
 from torch.nn import L1Loss, MSELoss
 from torch.optim import SGD, Adam, AdamW, RMSprop
 from torch.utils.data import Dataset
 from VAE.datasets import Dataset_LHS
-from VAE.metrics import rastrigin
+# from VAE.metrics import rastrigin
 from VAE.models.vanilla_vae import VariationalAutoencoder
 from VAE.loss import (
     BCELoss,VAELoss

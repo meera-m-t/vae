@@ -21,8 +21,14 @@ class BCELoss(Module):
 
      
 
+class VAELoss(Module):
+    def __init__(self, weight=None, size_average=True):
+        super().__init__()
 
-
+    def forward(self,model, x):
+        x_hat = model(x)
+        vae_loss = ((x - x_hat)**2).sum() + model.encoder.kl
+        return vae_loss
 
 
 
