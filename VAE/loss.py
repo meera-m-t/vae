@@ -17,8 +17,6 @@ class BCELoss(Module):
         bce_loss = BCEWithLogitsLoss()(pred, truth).double()
 
         return bce_loss
-
-
      
 
 class VAELoss(Module):

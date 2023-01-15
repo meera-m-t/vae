@@ -80,10 +80,9 @@ def train_model(model, config, logger):
     for epoch in range(config.epochs):
         start = time.time()
         train_loss, train_acc, n = 0, 0, 0
-        for i, (X, y) in enumerate(trainloader):
+        for i, (X) in enumerate(trainloader):
             model.train()
-            X, y = X.float().cuda(), y.long().cuda()
-
+            X= X.float().cuda()
             opt.zero_grad()
             with torch.cuda.amp.autocast():                
                 loss = criterion(model, X)
@@ -99,20 +98,20 @@ def train_model(model, config, logger):
         model.eval()
         val_loss, m = 0, 0 
         with torch.no_grad():
-            for i, (X, y) in enumerate(validloader):
-                X, y = X.float().cuda(), y.cuda()                   
+            for i, (X) in enumerate(validloader):
+                X = X.float().cuda()                 
                 loss = criterion(model, X)
                 val_loss += loss
                 m += 1
 
 
         location = save_dir / f"epoch_{epoch}_weights.pt"
-        if (
-            config.image_save_frequency
-            and (epoch + 1) % config.image_save_frequency == 0
-        ):
-            torch.save(model.state_dict(), location)
-            logger.log(f"Saved the model in {location}")
+        # if (
+        #     config.image_save_frequency
+        #     and (epoch + 1) % config.image_save_frequency == 0
+        # ):
+        #     torch.save(model.state_dict(), location)
+        #     logger.log(f"Saved the model in {location}")
 
         location = save_dir / "best_weights.pt"
         if val_loss < best_valid_loss:

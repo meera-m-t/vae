@@ -52,6 +52,13 @@ class VariationalAutoencoder(nn.Module):
         z = self.encoder(x)
         return self.decoder(z)
 
+    def get_save_dir(self, num_training=None):
+        if not num_training:
+            return self._save_name
+        else:
+            return f"{self._save_name}-dataset_size-{num_training}"
+
+
 if __name__ == "__main__":
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     vae = VariationalAutoencoder(latent_dims=3, input_dims=9)

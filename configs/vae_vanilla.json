@@ -26,7 +26,7 @@
       "lr": 0.0001,
       "weight_decay":0.0001 
     },
-    "loss": "BCELoss",
+    "loss": "VAELoss",
     "loss_kwargs": {},
     "test_metrics": [
       

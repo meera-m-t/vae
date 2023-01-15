@@ -8,7 +8,7 @@ from VAE.datasets import Dataset_LHS
 # from VAE.metrics import rastrigin
 from VAE.models.vanilla_vae import VariationalAutoencoder
 from VAE.loss import (
-    BCELoss,VAELoss
+    VAELoss, BCELoss
 )
 
 
