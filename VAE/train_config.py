@@ -95,6 +95,10 @@ class ExperimentationConfig(BaseModel):
         default={}, description="The loss keyword arguments"
     )
 
+    save_frequency: Optional[int] = Field(
+        default=None, description="How frequently to save image"
+    )
+
     save_dir: Optional[str] = Field(
         default=None,
         description="The directory for the saved models while training",

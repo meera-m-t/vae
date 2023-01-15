@@ -106,12 +106,12 @@ def train_model(model, config, logger):
 
 
         location = save_dir / f"epoch_{epoch}_weights.pt"
-        # if (
-        #     config.image_save_frequency
-        #     and (epoch + 1) % config.image_save_frequency == 0
-        # ):
-        #     torch.save(model.state_dict(), location)
-        #     logger.log(f"Saved the model in {location}")
+        if (
+            config.save_frequency
+            and (epoch + 1) % config.save_frequency == 0
+        ):
+            torch.save(model.state_dict(), location)
+            logger.log(f"Saved the model in {location}")
 
         location = save_dir / "best_weights.pt"
         if val_loss < best_valid_loss:
