@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 import torch
 from PIL import Image
-from torchvision.utils import save_image
+
 
 
 class SimpleLogger:
