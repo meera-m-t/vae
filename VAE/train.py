@@ -1,24 +1,34 @@
 import json
 import time
 from pathlib import Path
+
 import torch
 import torch.nn.functional as F
-from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau, CosineAnnealingLR, MultiStepLR
+from torch.optim.lr_scheduler import (
+    CosineAnnealingLR,
+    MultiStepLR,
+    ReduceLROnPlateau,
+    StepLR,
+)
 from torchsummary import summary
-from .pytorchtools import EarlyStopping
+
 from VAE.train_config import ExperimentationConfig
 from VAE.utils import SimpleLogger, make_dirs
+
+from .pytorchtools import EarlyStopping
 
 
 def train_model(model, config, logger):
     TrainDataset = config.get_train_dataset()
     train_set = TrainDataset(**config.train_set_kwargs)
-    logger.log(f"Training set size {len(train_set)}") 
-    ValidationDataset = config.get_valid_dataset()
+    logger.log(f"Training set size {len(train_set)}")
 
-    valid_set = ValidationDataset(**config.valid_set_kwargs)
+    if config.valid_set_name:
+        ValidationDataset = config.get_valid_dataset()
 
-    logger.log(f"Validation set size {len(valid_set)}")
+        valid_set = ValidationDataset(**config.valid_set_kwargs)
+
+        logger.log(f"Validation set size {len(valid_set)}")
 
     logger.log("Model Summary:")
     # print(summary(model=model, input_size=train_set[0][0].shape))
@@ -26,27 +36,30 @@ def train_model(model, config, logger):
     Optimizer = config.get_optimizer()
     opt = Optimizer(model.parameters(), **config.optimizer_kwargs)
 
-    logger.log(f"Using optimizer: {config.optimizer}")   
-   
+    logger.log(f"Using optimizer: {config.optimizer}")
+
     if config.scheduler == "CosineAnnealingLR":
         scheduler = CosineAnnealingLR(opt, T_max=config.epochs, eta_min=1e-5)
     elif config.scheduler == "StepLR":
         scheduler = StepLR(opt, step_size=50, gamma=0.1)
     elif config.scheduler == "ReduceLROnPlateau":
-        scheduler = ReduceLROnPlateau(opt, factor=0.1, patience=2, verbose=1, min_lr=1e-5)    
-    elif config['scheduler'] == 'MultiStepLR':
-        scheduler = MultiStepLR(opt, milestones=[int(e) for e in '1,2'.split(',')], gamma=2 / 3)
-    elif config.scheduler == 'ConstantLR':
+        scheduler = ReduceLROnPlateau(
+            opt, factor=0.1, patience=2, verbose=1, min_lr=1e-5
+        )
+    elif config["scheduler"] == "MultiStepLR":
+        scheduler = MultiStepLR(
+            opt, milestones=[int(e) for e in "1,2".split(",")], gamma=2 / 3
+        )
+    elif config.scheduler == "ConstantLR":
         scheduler = None
     else:
-        raise NotImplementedError                                               
-
+        raise NotImplementedError
 
     Loss = config.get_loss()
     criterion = Loss(**config.loss_kwargs)
     logger.log(f"Using loss: {config.loss}")
 
-    scaler = torch.cuda.amp.GradScaler()  
+    scaler = torch.cuda.amp.GradScaler()
 
     trainloader = torch.utils.data.DataLoader(
         train_set,
@@ -55,12 +68,13 @@ def train_model(model, config, logger):
         num_workers=config.num_workers,
     )
 
-    validloader = torch.utils.data.DataLoader(
-        valid_set,
-        batch_size=config.batch_size,
-        shuffle=True,
-        num_workers=config.num_workers,
-    )
+    if config.valid_set_name:
+        validloader = torch.utils.data.DataLoader(
+            valid_set,
+            batch_size=config.batch_size,
+            shuffle=True,
+            num_workers=config.num_workers,
+        )
 
     save_dir = (
         Path(config.save_dir).resolve()
@@ -69,6 +83,9 @@ def train_model(model, config, logger):
 
     if not save_dir.exists():
         make_dirs([save_dir])
+
+    if train_set.num_dimensions in {2, 3}:
+        train_set.plot_dist(save_dir / "data-set-distribution.png")
 
     with (save_dir / "TrainConfig.json").open("w") as frozen_settings_file:
         json.dump(config.dict(exclude_none=True), frozen_settings_file, indent=2)
@@ -82,9 +99,9 @@ def train_model(model, config, logger):
         train_loss, train_acc, n = 0, 0, 0
         for i, (X) in enumerate(trainloader):
             model.train()
-            X= X.float().cuda()
+            X = X.float().cuda()
             opt.zero_grad()
-            with torch.cuda.amp.autocast():                
+            with torch.cuda.amp.autocast():
                 loss = criterion(model, X)
 
             opt.zero_grad(set_to_none=True)
@@ -96,50 +113,47 @@ def train_model(model, config, logger):
             n += 1
 
         model.eval()
-        val_loss, m = 0, 0 
-        with torch.no_grad():
-            for i, (X) in enumerate(validloader):
-                X = X.float().cuda()                 
-                loss = criterion(model, X)
-                val_loss += loss
-                m += 1
-
 
         location = save_dir / f"epoch_{epoch}_weights.pt"
-        if (
-            config.save_frequency
-            and (epoch + 1) % config.save_frequency == 0
-        ):
+        if config.save_frequency and (epoch + 1) % config.save_frequency == 0:
             torch.save(model.state_dict(), location)
             logger.log(f"Saved the model in {location}")
+            print(train_set.num_dimensions)
+            if train_set.num_dimensions in {2, 3}:
+                all_ys = []
+                for i, (X) in enumerate(trainloader):
+                    Y = model(X.float().cuda())
+                    all_ys.append(torch.squeeze(Y))
+                ys = torch.cat(all_ys)
+                kwargs = config.train_set_kwargs
+                kwargs["data"] = ys
+                new_dataset = TrainDataset(**kwargs)
+                new_dataset.plot_dist(
+                    save_dir / f"epoch-{epoch}-reconstructed-distribution.png"
+                )
 
         location = save_dir / "best_weights.pt"
-        if val_loss < best_valid_loss:
-            torch.save(model.state_dict(), location)
-            logger.log(f"Saved the model in {location}")
-            best_valid_loss = val_loss
-            
 
         scheduler.step(epoch)
         lr = opt.param_groups[0]["lr"]
         logger.log(
-            f"Epoch: {epoch} | Train Loss: {train_loss / n:.4f} | Validation Loss: {val_loss / m:.4f} | Time: {time.time() - start:.1f}, lr: {lr:.6f}"
+            f"Epoch: {epoch} | Train Loss: {train_loss / n:.4f} | Time: {time.time() - start:.1f}, lr: {lr:.6f}"
         )
 
         location = save_dir / f"epoch_{epoch}_weights.pt"
         torch.save(model.state_dict(), location)
         logger.log(f"Saved the model in {location}")
 
-        ## EarlyStopping
-        if config.Early_Stopping:
-            early_stopping = EarlyStopping(patience=15, verbose=True)   
-            # early_stopping needs the validation loss to check if it has decresed, 
-            # and if it has, it will make a checkpoint of the current model
-            early_stopping(val_loss, model)
-            
-            if early_stopping.early_stop:
-                print("Early stopping")
-                break                 
+        # ## EarlyStopping
+        # if config.Early_Stopping:
+        #     early_stopping = EarlyStopping(patience=15, verbose=True)
+        #     # early_stopping needs the validation loss to check if it has decresed,
+        #     # and if it has, it will make a checkpoint of the current model
+        #     early_stopping(val_loss, model)
+
+        #     if early_stopping.early_stop:
+        #         print("Early stopping")
+        #         break
     return save_dir
 
 

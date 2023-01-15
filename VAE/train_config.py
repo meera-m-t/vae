@@ -1,29 +1,32 @@
 from typing import Any, Callable, ClassVar, Dict, List, Optional, Type
+
 import torch.utils.data
 from pydantic import BaseModel, Field, ValidationError, validator
 from torch.nn import L1Loss, MSELoss
 from torch.optim import SGD, Adam, AdamW, RMSprop
 from torch.utils.data import Dataset
-from VAE.datasets import Dataset_LHS
+
+from VAE.datasets import Dataset_LHS, DataSetRandomUniform
+from VAE.loss import BCELoss, VAELoss
+
 # from VAE.metrics import rastrigin
 from VAE.models.vanilla_vae import VariationalAutoencoder
-from VAE.loss import (
-    VAELoss, BCELoss
-)
 
 
 class ExperimentationConfig(BaseModel):
     """The training/testing configuration."""
 
-    models: ClassVar[Dict[str, torch.nn.Module]] = {"VariationalAutoencoder": VariationalAutoencoder,}
+    models: ClassVar[Dict[str, torch.nn.Module]] = {
+        "VariationalAutoencoder": VariationalAutoencoder,
+    }
 
     datasets: ClassVar[Dict[str, Dataset]] = {
         "Dataset_LHS": Dataset_LHS,
-       
+        "DatasetRandomUniform": DataSetRandomUniform,
     }
 
     evaluation_metrics: ClassVar[Dict[str, Callable]] = {}
- 
+
     optimizers: ClassVar[Dict[str, Type]] = {
         "AdamW": AdamW,
         "SGD": SGD,
@@ -33,7 +36,7 @@ class ExperimentationConfig(BaseModel):
 
     losses: ClassVar[Dict[str, Type]] = {
         "L1Loss": L1Loss,
-        "MSELoss": MSELoss,   
+        "MSELoss": MSELoss,
         "BCELoss": BCELoss,
         "VAELoss": VAELoss,
     }
@@ -54,7 +57,8 @@ class ExperimentationConfig(BaseModel):
     )
 
     Early_Stopping: Optional[bool] = Field(
-        default=False, description="early stopping to stop the training when the model starts to overfit to the training data."
+        default=False,
+        description="early stopping to stop the training when the model starts to overfit to the training data.",
     )
 
     batch_size: int = Field(default=64, description="The batch size when training")
@@ -115,12 +119,12 @@ class ExperimentationConfig(BaseModel):
 
     test_metrics: Optional[List[str]] = Field(
         default=None, description="The test/evaluation metrics"
-    )   
+    )
 
     def get_model(self) -> torch.nn.Module:
         return self.models[self.model_name]
 
-    def get_train_dataset(self) -> torch.utils.data.Dataset:        
+    def get_train_dataset(self) -> torch.utils.data.Dataset:
         return self.datasets[self.train_set_name]
 
     def get_valid_dataset(self) -> torch.utils.data.Dataset:

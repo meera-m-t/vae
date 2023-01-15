@@ -1,12 +1,11 @@
-
+import argparse
 from os import makedirs
 from typing import List, Optional
-import argparse
+
 import cv2
 import numpy as np
 import torch
 from PIL import Image
-
 
 
 class SimpleLogger:
@@ -20,10 +19,3 @@ class SimpleLogger:
 def make_dirs(dirs):
     for dir_ in dirs:
         makedirs(dir_, exist_ok=True)
-
-
-
-
-
-
-

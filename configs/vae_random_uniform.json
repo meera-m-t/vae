@@ -1,0 +1,31 @@
+{
+    "model_name": "VariationalAutoencoder",
+    "mode": "train",
+    "epochs": 100,
+    "batch_size": 32,
+    "scheduler":"CosineAnnealingLR",
+    "Early_Stopping":true,
+    "model_kwargs": {
+      "latent_dims": 2,
+      "input_dims": 3
+    },
+    "train_set_name": "DatasetRandomUniform",
+    "train_set_kwargs": {   
+        "samples": 10000,
+        "num_dimensions": 3,
+        "ranges": [-5.12, 5.12]
+    },
+    "optimizer": "Adam",
+    "optimizer_kwargs": {
+      "lr": 0.0001,
+      "weight_decay":0.0001 
+    },
+    "loss": "VAELoss",
+    "loss_kwargs": {},
+    "test_metrics": [
+      
+    ],  
+    "save_frequency": 5, 
+    "save_dir": "experiments/vae_vanilla_random_uniform_dataset",
+    "num_workers": 10
+  }

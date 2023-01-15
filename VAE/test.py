@@ -1,10 +1,13 @@
 import json
+
 import cv2
-import torch
 import numpy as np
-import torchvision.transforms as T
+import torch
 import torch.nn.functional as F
+import torchvision.transforms as T
+
 from VAE.train_config import ExperimentationConfig
+
 
 def test(experiment_dir: str, epoch: int = None):
     with open(experiment_dir + "/TrainConfig.json", "r") as json_file:
@@ -43,10 +46,10 @@ def test(experiment_dir: str, epoch: int = None):
         with torch.no_grad():
             batch_metrics = []
             for j, (X) in enumerate(test_loader):
-                X = X.float().cuda()         
-                test_loss += criterion(model, X)             
-          
-                batch_preds = []               
+                X = X.float().cuda()
+                test_loss += criterion(model, X)
+
+                batch_preds = []
                 # if len(test_metrics):
                 #     metric_values = {}
                 #     for metric_name, metric in test_metrics.items():

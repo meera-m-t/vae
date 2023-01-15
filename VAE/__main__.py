@@ -1,7 +1,9 @@
 import json
+
 from VAE.test import test
 from VAE.train import train
 from VAE.train_config import ExperimentationConfig
+
 
 def run(args=None):
     from argparse import ArgumentParser
@@ -27,11 +29,15 @@ def run(args=None):
 
     args = parser.parse_args(args)
 
+    import torch
+
+    torch.manual_seed(0)
+
     if args.mode == "train":
-        with open(args.config) as json_file:            
+        with open(args.config) as json_file:
             settings_json = json.load(json_file)
             if "mode" in args and settings_json["mode"] != args.mode:
-                settings_json["mode"] = args.mode                
+                settings_json["mode"] = args.mode
             train_settings = ExperimentationConfig.parse_obj(settings_json)
             train(train_settings)
     else:

@@ -1,8 +1,7 @@
 import torch
 import torch.nn.functional as F
-from torch import Tensor
+from torch import Tensor, nn
 from torch.nn import BCELoss, BCEWithLogitsLoss, CrossEntropyLoss, Module
-from torch import nn
 
 
 class BCELoss(Module):
@@ -17,24 +16,13 @@ class BCELoss(Module):
         bce_loss = BCEWithLogitsLoss()(pred, truth).double()
 
         return bce_loss
-     
+
 
 class VAELoss(Module):
     def __init__(self, weight=None, size_average=True):
         super().__init__()
 
-    def forward(self,model, x):
+    def forward(self, model, x):
         x_hat = model(x)
-        vae_loss = ((x - x_hat)**2).sum() + model.encoder.kl
+        vae_loss = ((x - x_hat) ** 2).sum() + 0.5 * model.encoder.kl
         return vae_loss
-
-
-
-
-
-
-
-
-
-
-
