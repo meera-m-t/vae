@@ -1,13 +1,12 @@
 import time
 
+import matplotlib.pyplot as plt
 import torch
 import torch.distributions
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils
 from torchsummary import summary
-
-import matplotlib.pyplot as plt
 
 plt.rcParams["figure.dpi"] = 200
 
@@ -18,7 +17,9 @@ class VariationalEncoder(nn.Module):
         self.linear = nn.Linear(input_dims, 784)
         self.linear1 = nn.Linear(784, 512)
         self.linear2 = nn.Linear(512, latent_dims)
-        self.N = torch.distributions.Normal(0, 1)
+        self.N = torch.distributions.Normal(
+            0, 1
+        )  # ToDo: Why this distribution is normal (Can it be anything else. Uniform Distribution)?
         self.N.loc = self.N.loc.cuda()  # hack to get sampling on the GPU
         self.N.scale = self.N.scale.cuda()
         self.kl = 0
@@ -29,7 +30,7 @@ class VariationalEncoder(nn.Module):
         x = F.relu(self.linear1(x))
         mu = self.linear2(x)
         sigma = torch.exp(self.linear2(x))
-        z = mu + sigma * self.N.sample(mu.shape)
+        z = mu + sigma * self.N.sample(mu.shape)  # (Re)Parameterization Trick
         self.kl = (sigma**2 + mu**2 - torch.log(sigma) - 1 / 2).sum()
         return z
 

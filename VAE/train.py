@@ -127,7 +127,9 @@ def train_model(model, config, logger):
                 ys = torch.cat(all_ys)
                 kwargs = config.train_set_kwargs
                 kwargs["data"] = ys
-                new_dataset = TrainDataset(**kwargs)
+                from VAE.datasets import DataSetRandomUniform
+
+                new_dataset = DataSetRandomUniform(num_dimensions=3, data=ys)
                 new_dataset.plot_dist(
                     save_dir / f"epoch-{epoch}-reconstructed-distribution.png"
                 )

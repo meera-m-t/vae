@@ -1,4 +1,7 @@
-import numpy as np
+import os
+import time  # Python Module
+
+import numpy as np  # Third party pacakge
 import pandas as pd
 import torch
 from matplotlib import pyplot as plt
@@ -22,6 +25,7 @@ class Dataset_LHS(Dataset):
 
     def create_dataset(self, n_samples, n_dims=9):
         # Create the dataset
+        self.num_dimensions = 3
         x1 = np.random.uniform([0, 400])
         x2 = np.random.uniform([100, 300])
         x3 = np.random.uniform([0, 400])
@@ -42,7 +46,8 @@ class Dataset_LHS(Dataset):
         x18 = np.random.uniform([350, 500])
         x19 = np.random.uniform([300, 500])
         x20 = np.random.uniform([300, 500])
-        xlimits = np.array([x1, x2, x3, x4, x5, x6, x7, x8, x9])
+        # xlimits = np.array([x1, x2, x3, x4, x5, x6, x7, x8, x9])
+        xlimits = np.array([x1, x2, x3])
         sampling = LHS(xlimits=xlimits)
         x = sampling(n_samples)
         normalized_vector = x / np.linalg.norm(x)
@@ -61,6 +66,43 @@ class Dataset_LHS(Dataset):
         else:
             metadata = self.test_metadata
         return metadata
+
+    def plot_dist(self, save_name: str, rescale: bool = True) -> None:
+        if self.num_dimensions > 3:
+            raise ValueError("Cannot plot in more than 3 dimension")
+        if self.num_dimensions == 2:
+            self._plot_2d(save_name)
+        else:
+            self._plot_3d(save_name)
+
+    def _plot_2d(self, save_name: str, rescale=True) -> None:
+        # if rescale:
+        #     to_plot = self.rescaled().detach().cpu().numpy()
+        # else:
+        #     to_plot = self.data.detach().cpu().numpy()
+        to_plot = self._get_metadata()
+
+        plt.scatter(to_plot[:, 0], to_plot[:, 1])
+        plt.xlabel("Var:0")
+        plt.ylabel("Var:1")
+        plt.savefig(save_name)
+
+    def _plot_3d(self, save_name: str, rescale=True) -> None:
+        # if rescale:
+        #     to_plot = self.rescaled().detach().cpu().numpy()
+        # else:
+        #     to_plot = self.data.detach().cpu().numpy()
+
+        to_plot = self._get_metadata()
+
+        fig = plt.figure()
+        ax = fig.add_subplot(projection="3d")
+
+        ax.scatter(to_plot[:, 0], to_plot[:, 1], to_plot[:, 2])
+        ax.set_xlabel("Var:0")
+        ax.set_ylabel("Var:1")
+        ax.set_zlabel("Var:2")
+        plt.savefig(save_name)
 
     def __getitem__(self, index):
         metadata = self._get_metadata()

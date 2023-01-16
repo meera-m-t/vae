@@ -6,8 +6,8 @@
     "scheduler":"CosineAnnealingLR",
     "Early_Stopping":true,
     "model_kwargs": {
-      "latent_dims": 3,
-      "input_dims": 9
+      "latent_dims": 2,
+      "input_dims": 3
     },
     "train_set_name": "Dataset_LHS",
     "train_set_kwargs": {   
@@ -31,7 +31,7 @@
     "test_metrics": [
       
     ],  
-    "save_frequency": 50, 
+    "save_frequency": 5, 
     "save_dir": "experiments/vae_vanilla",
     "num_workers": 10
   }

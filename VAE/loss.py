@@ -24,5 +24,5 @@ class VAELoss(Module):
 
     def forward(self, model, x):
         x_hat = model(x)
-        vae_loss = ((x - x_hat) ** 2).sum() + 0.5 * model.encoder.kl
+        vae_loss = ((x - x_hat) ** 2).sum() + 0.5 * model.encoder.kl  # (beta)
         return vae_loss
