@@ -143,8 +143,11 @@ class DataSetRandomUniform(Dataset):
             raise ValueError("Cannot plot in more than 3 dimension")
         if self.num_dimensions == 2:
             self._plot_2d(save_name)
-        else:
+        elif self.num_dimensions == 3:
             self._plot_3d(save_name)
+        else:
+            self._plot_1d(save_name)
+        plt.close()
 
     def rescaled(self):
         v_min, v_max = self.data.min(), self.data.max()
@@ -163,6 +166,17 @@ class DataSetRandomUniform(Dataset):
         plt.scatter(to_plot[:, 0], to_plot[:, 1])
         plt.xlabel("Var:0")
         plt.ylabel("Var:1")
+        plt.savefig(save_name)
+
+    def _plot_1d(self, save_name, rescale=True):
+        if rescale:
+            to_plot = self.rescaled().detach().cpu().numpy()
+        else:
+            to_plot = self.data.detach().cpu().numpy()
+
+        plt.hist(to_plot, bins=50)
+        plt.xlabel("Var:0")
+        plt.ylabel("Frequency")
         plt.savefig(save_name)
 
     def _plot_3d(self, save_name: str, rescale=True) -> None:
@@ -188,8 +202,11 @@ if __name__ == "__main__":
     #     lhs = dset[j]
     #     print(lhs.shape, lhs)
     # print(len(dset))
-    d = DataSetRandomUniform(2, samples=10000)
-    d.plot_dist("2d-10000.png")
+    # d = DataSetRandomUniform(2, samples=10000)
+    # d.plot_dist("2d-10000.png")
 
-    d = DataSetRandomUniform(3, samples=10000)
-    d.plot_dist("3d-10000.png")
+    # d = DataSetRandomUniform(3, samples=10000)
+    # d.plot_dist("3d-10000.png")
+
+    d = DataSetRandomUniform(1, samples=10000)
+    d.plot_dist("1d-10000.png")

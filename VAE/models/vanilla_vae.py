@@ -14,9 +14,9 @@ plt.rcParams["figure.dpi"] = 200
 class VariationalEncoder(nn.Module):
     def __init__(self, latent_dims, input_dims):
         super(VariationalEncoder, self).__init__()
-        self.linear = nn.Linear(input_dims, 784)
-        self.linear1 = nn.Linear(784, 512)
-        self.linear2 = nn.Linear(512, latent_dims)
+        self.linear = nn.Linear(input_dims, 64)
+        self.linear1 = nn.Linear(64, 32)
+        self.linear2 = nn.Linear(32, latent_dims)
         self.N = torch.distributions.Normal(
             0, 1
         )  # ToDo: Why this distribution is normal (Can it be anything else. Uniform Distribution)?
@@ -38,11 +38,13 @@ class VariationalEncoder(nn.Module):
 class Decoder(nn.Module):
     def __init__(self, latent_dims, input_dims):
         super(Decoder, self).__init__()
-        self.linear1 = nn.Linear(latent_dims, 512)
-        self.linear2 = nn.Linear(512, input_dims)
+        self.linear = nn.Linear(latent_dims, 32)
+        self.linear1 = nn.Linear(32, 64)
+        self.linear2 = nn.Linear(64, input_dims)
         self.input_dims = input_dims
 
     def forward(self, z):
+        z = F.relu(self.linear(z))
         z = F.relu(self.linear1(z))
         z = F.relu(self.linear2(z))
         return z.reshape((-1, 1, self.input_dims))

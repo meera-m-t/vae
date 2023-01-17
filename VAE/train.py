@@ -84,7 +84,7 @@ def train_model(model, config, logger):
     if not save_dir.exists():
         make_dirs([save_dir])
 
-    if train_set.num_dimensions in {2, 3}:
+    if train_set.num_dimensions in {1, 2, 3}:
         train_set.plot_dist(save_dir / "data-set-distribution.png")
 
     with (save_dir / "TrainConfig.json").open("w") as frozen_settings_file:
@@ -119,7 +119,7 @@ def train_model(model, config, logger):
             torch.save(model.state_dict(), location)
             logger.log(f"Saved the model in {location}")
             print(train_set.num_dimensions)
-            if train_set.num_dimensions in {2, 3}:
+            if train_set.num_dimensions in {1, 2, 3}:
                 all_ys = []
                 for i, (X) in enumerate(trainloader):
                     Y = model(X.float().cuda())
@@ -127,9 +127,7 @@ def train_model(model, config, logger):
                 ys = torch.cat(all_ys)
                 kwargs = config.train_set_kwargs
                 kwargs["data"] = ys
-                from VAE.datasets import DataSetRandomUniform
-
-                new_dataset = DataSetRandomUniform(num_dimensions=3, data=ys)
+                new_dataset = TrainDataset(**kwargs)
                 new_dataset.plot_dist(
                     save_dir / f"epoch-{epoch}-reconstructed-distribution.png"
                 )
@@ -142,9 +140,10 @@ def train_model(model, config, logger):
             f"Epoch: {epoch} | Train Loss: {train_loss / n:.4f} | Time: {time.time() - start:.1f}, lr: {lr:.6f}"
         )
 
-        location = save_dir / f"epoch_{epoch}_weights.pt"
-        torch.save(model.state_dict(), location)
-        logger.log(f"Saved the model in {location}")
+        if config.save_frequency and (epoch + 1) % config.save_frequency == 0:
+            location = save_dir / f"epoch_{epoch}_weights.pt"
+            torch.save(model.state_dict(), location)
+            logger.log(f"Saved the model in {location}")
 
         # ## EarlyStopping
         # if config.Early_Stopping:
