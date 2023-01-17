@@ -1,7 +1,7 @@
 import json
 import time
 from pathlib import Path
-
+import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import (
@@ -13,7 +13,7 @@ from torch.optim.lr_scheduler import (
 from torchsummary import summary
 
 from VAE.train_config import ExperimentationConfig
-from VAE.utils import SimpleLogger, make_dirs
+from VAE.utils import SimpleLogger, make_dirs, denormalize, change_range
 
 from .pytorchtools import EarlyStopping
 
@@ -94,6 +94,17 @@ def train_model(model, config, logger):
     best_valid_loss = 5e33
     trigger = 0
 
+    # takes in a module and applies the specified weight initialization
+    def weights_init_uniform_rule(m):
+        classname = m.__class__.__name__
+        # for every Linear layer in a model..
+        if classname.find('Linear') != -1:
+            # get the number of the inputs
+            n = m.in_features
+            y = 1.0/np.sqrt(n)
+            m.weight.data.uniform_(-y, y)
+            m.bias.data.fill_(0)
+    model.apply(weights_init_uniform_rule)
     for epoch in range(config.epochs):
         start = time.time()
         train_loss, train_acc, n = 0, 0, 0
@@ -102,7 +113,8 @@ def train_model(model, config, logger):
             X = X.float().cuda()
             opt.zero_grad()
             with torch.cuda.amp.autocast():
-                loss = criterion(model, X)
+                outputs = model(X)
+                loss = criterion(outputs, X)
 
             opt.zero_grad(set_to_none=True)
             scaler.scale(loss).backward()
@@ -120,16 +132,17 @@ def train_model(model, config, logger):
             logger.log(f"Saved the model in {location}")
             print(train_set.num_dimensions)
             if train_set.num_dimensions in {2, 3}:
-                all_ys = []
+                all_ys = []        
                 for i, (X) in enumerate(trainloader):
                     Y = model(X.float().cuda())
-                    all_ys.append(torch.squeeze(Y))
+                    all_ys.append(torch.squeeze((Y[0])))
+                    # print(torch.nn.L1Loss(reduction="mean")(X.cuda(), torch.squeeze(Y[0])) )
                 ys = torch.cat(all_ys)
+                
                 kwargs = config.train_set_kwargs
                 kwargs["data"] = ys
-                from VAE.datasets import DataSetRandomUniform
-
-                new_dataset = DataSetRandomUniform(num_dimensions=3, data=ys)
+                from VAE.datasets import Dataset_LHS              
+                new_dataset = Dataset_LHS(data=ys)
                 new_dataset.plot_dist(
                     save_dir / f"epoch-{epoch}-reconstructed-distribution.png"
                 )

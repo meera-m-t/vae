@@ -1,13 +1,13 @@
 {
     "model_name": "VariationalAutoencoder",
     "mode": "train",
-    "epochs": 100,
+    "epochs": 300,
     "batch_size": 32,
     "scheduler":"CosineAnnealingLR",
     "Early_Stopping":true,
     "model_kwargs": {
-      "latent_dims": 2,
-      "input_dims": 3
+      "D_in": 3,
+      "latent_dim": 2
     },
     "train_set_name": "Dataset_LHS",
     "train_set_kwargs": {   
@@ -26,7 +26,7 @@
       "lr": 0.0001,
       "weight_decay":0.0001 
     },
-    "loss": "VAELoss",
+    "loss": "customLoss",
     "loss_kwargs": {},
     "test_metrics": [
       

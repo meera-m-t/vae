@@ -6,8 +6,8 @@ from torch.nn import L1Loss, MSELoss
 from torch.optim import SGD, Adam, AdamW, RMSprop
 from torch.utils.data import Dataset
 
-from VAE.datasets import Dataset_LHS, DataSetRandomUniform
-from VAE.loss import BCELoss, VAELoss
+from VAE.datasets import Dataset_LHS
+from VAE.loss import BCELoss, VAELoss, customLoss
 
 # from VAE.metrics import rastrigin
 from VAE.models.vanilla_vae import VariationalAutoencoder
@@ -22,7 +22,7 @@ class ExperimentationConfig(BaseModel):
 
     datasets: ClassVar[Dict[str, Dataset]] = {
         "Dataset_LHS": Dataset_LHS,
-        "DatasetRandomUniform": DataSetRandomUniform,
+        # "DatasetRandomUniform": DataSetRandomUniform,
     }
 
     evaluation_metrics: ClassVar[Dict[str, Callable]] = {}
@@ -39,6 +39,7 @@ class ExperimentationConfig(BaseModel):
         "MSELoss": MSELoss,
         "BCELoss": BCELoss,
         "VAELoss": VAELoss,
+        "customLoss": customLoss
     }
 
     model_name: str = Field(..., description="The model to train/test with")
