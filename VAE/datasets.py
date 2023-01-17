@@ -11,10 +11,11 @@ from torchvision.transforms import ToTensor
 
 
 class Dataset_LHS(Dataset):
-    def __init__(self,  split=0, n_samples=1000, n_dims=9,  data=None):
+    def __init__(self,  split=0, n_samples=1000, n_dims=2,  data=None):
         self.data = data
+        self.n_dims = n_dims
         metadata = self.create_dataset(n_samples)
-        self.num_dimensions = 3
+        self.num_dimensions = n_dims
         train_valid_metadata, self.test_metadata = train_test_split(
             metadata, test_size=0.1, shuffle=True, random_state=42
         )
@@ -24,14 +25,14 @@ class Dataset_LHS(Dataset):
         # self.transform = ToTensor()
         self.split = split
 
-    def create_dataset(self, n_samples, n_dims=9):
-        n = 10000*3
+    def create_dataset(self, n_samples, n_dims=2):
+        n = 10000*n_dims
         nt = 128
         f = 3.0                  # frequency in Hz
         t = np.linspace(0,1,nt)  # time stamps in s
         x = np.zeros((n,nt))
         x = np.random.uniform(-np.pi, np.pi, size=n)
-        x = x.reshape(10000, 3)
+        x = x.reshape(10000, n_dims)
         print(x.shape)
         normalized_vector = x / np.linalg.norm(x)
         return normalized_vector

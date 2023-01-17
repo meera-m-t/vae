@@ -11,7 +11,8 @@
     },
     "train_set_name": "Dataset_LHS",
     "train_set_kwargs": {   
-      "split": 0
+      "split": 0,
+      "n_dims": 3
     },
     "valid_set_name": "Dataset_LHS",
     "valid_set_kwargs": { 
