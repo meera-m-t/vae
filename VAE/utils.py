@@ -1,6 +1,7 @@
 import argparse
 from os import makedirs
 from typing import List, Optional
+
 import cv2
 import numpy as np
 import torch
@@ -25,7 +26,6 @@ def denormalize(x):
     return out.clamp_(0, 1)
 
 
-
 def change_range(set_, new_min=0, new_max=1):
     set_ = set_.detach().cpu().numpy()
     set_ = set_.reshape(set_.shape[0] * set_.shape[1])
@@ -35,4 +35,6 @@ def change_range(set_, new_min=0, new_max=1):
     new_value = np.vectorize(new_value)
     print(new_value[0])
     new_value = new_value.__doc__
-    return torch.tensor(new_value(set_).reshape(set_.shape[0], set_.shape[1]), decice ='cuda')    
+    return torch.tensor(
+        new_value(set_).reshape(set_.shape[0], set_.shape[1]), decice="cuda"
+    )

@@ -37,7 +37,7 @@ class ExperimentationConfig(BaseModel):
     losses: ClassVar[Dict[str, Type]] = {
         "L1Loss": L1Loss,
         "MSELoss": MSELoss,
-        "customLoss": customLoss
+        "customLoss": customLoss,
     }
 
     model_name: str = Field(..., description="The model to train/test with")
