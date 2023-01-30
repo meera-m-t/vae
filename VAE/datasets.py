@@ -16,14 +16,7 @@ class Dataset_LHS(Dataset):
         self.n_dims = n_dims
         metadata = self.create_dataset(n_samples)
         self.num_dimensions = n_dims
-        train_valid_metadata, self.test_metadata = train_test_split(
-            metadata, test_size=0.1, shuffle=True, random_state=42
-        )
-        self.train_metadata, self.valid_metadata = train_test_split(
-            train_valid_metadata, test_size=0.1, shuffle=True, random_state=42
-        )
-        # self.transform = ToTensor()
-        self.split = split
+        self.train_metadata = metadata   
 
     def create_dataset(self, n_samples, n_dims=3):
         n = n_samples*n_dims
@@ -41,12 +34,7 @@ class Dataset_LHS(Dataset):
         return x.reshape(n_samples, n_dims) 
 
     def _get_metadata(self):
-        if self.split == 0:
-            metadata = self.train_metadata
-        elif self.split == 1:
-            metadata = self.valid_metadata
-        else:
-            metadata = self.test_metadata
+        metadata = self.train_metadata
         return metadata
 
     def __getitem__(self, index):
@@ -71,11 +59,11 @@ class Dataset_LHS(Dataset):
         data = self.data
         if data is None:          
             to_plot =  self._get_metadata()
-        else:          
+        else:                
             # x_norm = (x - x.min()) / (x.max() - x.min())       
             # x_norm = 2.0*x_norm - 1.0           
             to_plot = data.detach().cpu().numpy()
-        print(min(data), max(data), "x min and max reconstruct values") 
+             
         plt.scatter(to_plot[:, 0], to_plot[:, 1])
         plt.xlabel("Var:0")
         plt.ylabel("Var:1")
@@ -85,9 +73,10 @@ class Dataset_LHS(Dataset):
         data = self.data
         if data is None:  
             to_plot =  self._get_metadata()
-        else:          
+        else: 
+            print(data.shape, "data shape")         
             to_plot = data.detach().cpu().numpy() 
-
+            print(min(data.flatten()), max(data.flatten()), "x min and max reconstruct values") 
         fig = plt.figure()
         ax = fig.add_subplot(projection="3d")
 
