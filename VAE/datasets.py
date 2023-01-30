@@ -9,6 +9,32 @@ from sklearn.model_selection import train_test_split
 from smt.sampling_methods import LHS
 from torch.utils.data import Dataset
 from torchvision.transforms import ToTensor
+from scipy import stats
+
+def uniformity_test(x):
+    """Test for uniformity of a 1D array of samples.
+    Parameters
+    ----------
+    x : array_like
+        The array of samples to test.
+    n_bins : int
+        The number of bins to use.
+    Returns
+    -------
+    p : float
+        The p-value of the uniformity test.
+    """
+    x = np.asarray(x)
+    n_bins = len(x)
+    x_min = -3.14 #x.min()
+    x_max = 3.14 #x.max()
+    bin_width = (x_max - x_min) / n_bins
+    bins = np.arange(x_min, x_max + bin_width, bin_width)
+    bin_counts = np.histogram(x, bins=bins)[0]
+    p = stats.chisquare(bin_counts)[1]
+    return p
+
+    
 
 
 class Dataset_LHS(Dataset):
@@ -74,14 +100,15 @@ class Dataset_LHS(Dataset):
         data = self.data
         if data is None:
             to_plot = self._get_metadata()
-        else:
-            print(data.shape, "data shape")
+        else:            
             to_plot = data.detach().cpu().numpy()
+            print(to_plot.shape, "to_plot shape")
             print(
-                min(data.flatten()),
-                max(data.flatten()),
+                min(to_plot.flatten()),
+                max(to_plot.flatten()),
                 "x min and max reconstruct values",
             )
+            print(uniformity_test(to_plot.flatten()), "uniformity test")
         fig = plt.figure()
         ax = fig.add_subplot(projection="3d")
 

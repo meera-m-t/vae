@@ -31,7 +31,7 @@
     "test_metrics": [
       
     ],  
-    "save_frequency": 50, 
+    "save_frequency": 10, 
     "save_dir": "experiments/vae_vanilla",
     "num_workers": 14
   }
