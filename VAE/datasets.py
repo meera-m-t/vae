@@ -25,15 +25,19 @@ def uniformity_test(x):
     p : float
         The p-value of the uniformity test.
     """
-    x = np.asarray(x)
-    n_bins = len(x)
-    x_min = -3.14  # x.min()
-    x_max = 3.14  # x.max()
-    bin_width = (x_max - x_min) / n_bins
-    bins = np.arange(x_min, x_max + bin_width, bin_width)
-    bin_counts = np.histogram(x, bins=bins)[0]
-    p = stats.chisquare(bin_counts)[1]
-    return p
+
+    p_value = []
+    for i in range(x.shape[1]):
+        x_ = np.asarray(x[:, i])
+        n_bins = len(x_)
+        x_min = -3.14  # x.min()
+        x_max = 3.14  # x.max()
+        bin_width = (x_max - x_min) / n_bins
+        bins = np.arange(x_min, x_max + bin_width, bin_width)
+        bin_counts = np.histogram(x_, bins=bins)[0]
+        p = stats.chisquare(bin_counts)[1]
+        p_value.append(p)
+    return p_value
 
 
 class Dataset_LHS(Dataset):
@@ -107,7 +111,7 @@ class Dataset_LHS(Dataset):
                 max(to_plot.flatten()),
                 "x min and max reconstruct values",
             )
-            print(uniformity_test(to_plot.flatten()), "uniformity test")
+            print(uniformity_test(to_plot), "uniformity test for each dimension")
         fig = plt.figure()
         ax = fig.add_subplot(projection="3d")
 

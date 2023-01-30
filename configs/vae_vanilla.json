@@ -1,7 +1,7 @@
 {
     "model_name": "VariationalAutoencoder",
     "mode": "train",
-    "epochs": 700,
+    "epochs": 1000,
     "batch_size": 100,
     "scheduler":"CosineAnnealingLR",
     "Early_Stopping":true,
