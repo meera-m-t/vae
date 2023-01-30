@@ -11,7 +11,7 @@ from torchvision.transforms import ToTensor
 
 
 class Dataset_LHS(Dataset):
-    def __init__(self,  split=0, n_samples=1000, n_dims=2,  data=None):
+    def __init__(self,  split=0, n_samples=10000, n_dims=3,  data=None):
         self.data = data
         self.n_dims = n_dims
         metadata = self.create_dataset(n_samples)
@@ -25,17 +25,20 @@ class Dataset_LHS(Dataset):
         # self.transform = ToTensor()
         self.split = split
 
-    def create_dataset(self, n_samples, n_dims=2):
-        n = 10000*n_dims
+    def create_dataset(self, n_samples, n_dims=3):
+        n = n_samples*n_dims
         nt = 128
         f = 3.0                  # frequency in Hz
         t = np.linspace(0,1,nt)  # time stamps in s
         x = np.zeros((n,nt))
-        x = np.random.uniform(-np.pi, np.pi, size=n)
-        x = x.reshape(10000, n_dims)
-        print(x.shape)
-        normalized_vector = x / np.linalg.norm(x)
-        return normalized_vector
+        x = np.random.uniform(-np.pi, np.pi, size=n)     
+        print(min(x), max(x), "x min and max values") 
+        # means = x.mean(axis=0)
+        # stds = x.std(axis=0)
+        # normalized_data = (x - means) / stds
+        # x_norm = (x - x.min()) / (x.max() - x.min())       
+        # x_norm = 2.0*x_norm - 1.0 
+        return x.reshape(n_samples, n_dims) 
 
     def _get_metadata(self):
         if self.split == 0:
@@ -69,8 +72,10 @@ class Dataset_LHS(Dataset):
         if data is None:          
             to_plot =  self._get_metadata()
         else:          
+            # x_norm = (x - x.min()) / (x.max() - x.min())       
+            # x_norm = 2.0*x_norm - 1.0           
             to_plot = data.detach().cpu().numpy()
-
+        print(min(data), max(data), "x min and max reconstruct values") 
         plt.scatter(to_plot[:, 0], to_plot[:, 1])
         plt.xlabel("Var:0")
         plt.ylabel("Var:1")
@@ -80,13 +85,13 @@ class Dataset_LHS(Dataset):
         data = self.data
         if data is None:  
             to_plot =  self._get_metadata()
-        else:           
-            to_plot = data.detach().cpu().numpy()
+        else:          
+            to_plot = data.detach().cpu().numpy() 
 
         fig = plt.figure()
         ax = fig.add_subplot(projection="3d")
 
-        ax.scatter(to_plot[:, 0], to_plot[:, 1], to_plot[:, 2])
+        ax.scatter(to_plot[:, 0], to_plot[:, 1], to_plot[:, 2], s=0.5)
         ax.set_xlabel("Var:0")
         ax.set_ylabel("Var:1")
         ax.set_zlabel("Var:2")

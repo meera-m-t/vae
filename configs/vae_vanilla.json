@@ -1,8 +1,8 @@
 {
     "model_name": "VariationalAutoencoder",
     "mode": "train",
-    "epochs": 300,
-    "batch_size": 32,
+    "epochs": 700,
+    "batch_size": 100,
     "scheduler":"CosineAnnealingLR",
     "Early_Stopping":true,
     "model_kwargs": {
@@ -14,13 +14,10 @@
       "split": 0,
       "n_dims": 3
     },
-    "valid_set_name": "Dataset_LHS",
-    "valid_set_kwargs": { 
-      "split": 1
-    },
     "test_set_name": "Dataset_LHS",
     "test_set_kwargs": {   
-      "split": 2      
+      "split": 0,
+      "n_dims": 3      
     },
     "optimizer": "Adam",
     "optimizer_kwargs": {
@@ -28,11 +25,13 @@
       "weight_decay":0.0001 
     },
     "loss": "customLoss",
-    "loss_kwargs": {},
+    "loss_kwargs": {
+      "beta" : -0.1
+    },
     "test_metrics": [
       
     ],  
-    "save_frequency": 5, 
+    "save_frequency": 50, 
     "save_dir": "experiments/vae_vanilla",
-    "num_workers": 10
+    "num_workers": 14
   }

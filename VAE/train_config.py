@@ -7,7 +7,7 @@ from torch.optim import SGD, Adam, AdamW, RMSprop
 from torch.utils.data import Dataset
 
 from VAE.datasets import Dataset_LHS
-from VAE.loss import BCELoss, VAELoss, customLoss
+from VAE.loss import customLoss
 
 # from VAE.metrics import rastrigin
 from VAE.models.vanilla_vae import VariationalAutoencoder
@@ -37,8 +37,6 @@ class ExperimentationConfig(BaseModel):
     losses: ClassVar[Dict[str, Type]] = {
         "L1Loss": L1Loss,
         "MSELoss": MSELoss,
-        "BCELoss": BCELoss,
-        "VAELoss": VAELoss,
         "customLoss": customLoss
     }
 

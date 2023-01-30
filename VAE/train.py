@@ -128,6 +128,9 @@ def train_model(model, config, logger):
 
         location = save_dir / f"epoch_{epoch}_weights.pt"
         if config.save_frequency and (epoch + 1) % config.save_frequency == 0:
+            location = save_dir / f"epoch_{epoch}_weights.pt"
+            torch.save(model.state_dict(), location)
+            logger.log(f"Saved the model in {location}")
             torch.save(model.state_dict(), location)
             logger.log(f"Saved the model in {location}")
             print(train_set.num_dimensions)
@@ -147,6 +150,9 @@ def train_model(model, config, logger):
                     save_dir / f"epoch-{epoch}-reconstructed-distribution.png"
                 )
 
+
+
+
         location = save_dir / "best_weights.pt"
 
         scheduler.step(epoch)
@@ -155,9 +161,7 @@ def train_model(model, config, logger):
             f"Epoch: {epoch} | Train Loss: {train_loss / n:.4f} | Time: {time.time() - start:.1f}, lr: {lr:.6f}"
         )
 
-        location = save_dir / f"epoch_{epoch}_weights.pt"
-        torch.save(model.state_dict(), location)
-        logger.log(f"Saved the model in {location}")
+
 
         # ## EarlyStopping
         # if config.Early_Stopping:
