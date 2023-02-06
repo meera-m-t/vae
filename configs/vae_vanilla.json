@@ -4,6 +4,10 @@
     "epochs": 1000,
     "batch_size": 100,
     "scheduler":"CosineAnnealingLR",
+    "scheduler_kwargs": {
+      "T_max": 1000,
+      "eta_min": 1e-5
+    },
     "Early_Stopping":true,
     "model_kwargs": {
       "D_in": 3,

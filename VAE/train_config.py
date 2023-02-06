@@ -4,11 +4,12 @@ import torch.utils.data
 from pydantic import BaseModel, Field, ValidationError, validator
 from torch.nn import L1Loss, MSELoss
 from torch.optim import SGD, Adam, AdamW, RMSprop
+from torch.optim.lr_scheduler import (ConstantLR, CosineAnnealingLR,
+                                      MultiStepLR, ReduceLROnPlateau, StepLR)
 from torch.utils.data import Dataset
 
 from VAE.datasets import Dataset_LHS
 from VAE.loss import customLoss
-
 # from VAE.metrics import rastrigin
 from VAE.models.vanilla_vae import VariationalAutoencoder
 
@@ -40,6 +41,14 @@ class ExperimentationConfig(BaseModel):
         "customLoss": customLoss,
     }
 
+    schedulers: ClassVar[Dict[str, Type]] = {
+        "StepLR": StepLR,
+        "ReduceLROnPlateau": ReduceLROnPlateau,
+        "ConstantLR": ConstantLR,
+        "CosineAnnealingLR": CosineAnnealingLR,
+        "MultiStepLR": MultiStepLR,
+    }
+
     model_name: str = Field(..., description="The model to train/test with")
 
     mode: str = Field(
@@ -48,7 +57,7 @@ class ExperimentationConfig(BaseModel):
     )
     scheduler: str = Field(
         default="CosineAnnealingLR",
-        description=" a learning rate scheduling technique i.e. 'StepLR', 'ReduceLROnPlateau', 'ConstantLR', 'CosineAnnealingLR', 'MultiStepLR' ",
+        description=" a learning rate scheduling technique to adjust the learning rate during training ",
     )
 
     epochs: Optional[int] = Field(
@@ -96,6 +105,9 @@ class ExperimentationConfig(BaseModel):
 
     loss_kwargs: Optional[Dict] = Field(
         default={}, description="The loss keyword arguments"
+    )
+    scheduler_kwargs: Optional[Dict] = Field(
+        default={}, description="The scheduler keyword arguments"
     )
 
     save_frequency: Optional[int] = Field(
@@ -147,6 +159,9 @@ class ExperimentationConfig(BaseModel):
     def get_loss(self) -> Callable:
         return self.losses[self.loss]
 
+    def get_scheduler(self) -> Callable:
+        return self.schedulers[self.scheduler]
+
     @validator("model_name", always=True)
     def model_name_validator(cls, value):
         if value not in cls.models:
@@ -178,6 +193,13 @@ class ExperimentationConfig(BaseModel):
     def loss_name_validator(cls, value):
         if value is not None and value not in cls.losses:
             raise ValidationError(f"Loss name {value} is not valid")
+
+        return value
+
+    @validator("scheduler", always=True)
+    def scheduler_name_validator(cls, value):
+        if value is not None and value not in cls.schedulers:
+            raise ValidationError(f"Scheduler name {value} is not valid")
 
         return value
 

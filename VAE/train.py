@@ -5,16 +5,10 @@ from pathlib import Path
 import numpy as np
 import torch
 import torch.nn.functional as F
-from torch.optim.lr_scheduler import (
-    CosineAnnealingLR,
-    MultiStepLR,
-    ReduceLROnPlateau,
-    StepLR,
-)
 from torchsummary import summary
 
 from VAE.train_config import ExperimentationConfig
-from VAE.utils import SimpleLogger, change_range, denormalize, make_dirs
+from VAE.utils import SimpleLogger, make_dirs
 
 from .pytorchtools import EarlyStopping
 
@@ -32,29 +26,16 @@ def train_model(model, config, logger):
         logger.log(f"Validation set size {len(valid_set)}")
 
     logger.log("Model Summary:")
-    # print(summary(model=model, input_size=train_set[0][0].shape))
+    print(summary(model=model, input_size=train_set[0][0].shape))
 
     Optimizer = config.get_optimizer()
     opt = Optimizer(model.parameters(), **config.optimizer_kwargs)
 
     logger.log(f"Using optimizer: {config.optimizer}")
 
-    if config.scheduler == "CosineAnnealingLR":
-        scheduler = CosineAnnealingLR(opt, T_max=config.epochs, eta_min=1e-5)
-    elif config.scheduler == "StepLR":
-        scheduler = StepLR(opt, step_size=50, gamma=0.1)
-    elif config.scheduler == "ReduceLROnPlateau":
-        scheduler = ReduceLROnPlateau(
-            opt, factor=0.1, patience=2, verbose=1, min_lr=1e-5
-        )
-    elif config["scheduler"] == "MultiStepLR":
-        scheduler = MultiStepLR(
-            opt, milestones=[int(e) for e in "1,2".split(",")], gamma=2 / 3
-        )
-    elif config.scheduler == "ConstantLR":
-        scheduler = None
-    else:
-        raise NotImplementedError
+    schedular = config.get_scheduler()
+    scheduler = schedular(opt, **config.scheduler_kwargs)
+    logger.log(f"Using scheduler: {config.scheduler}")
 
     Loss = config.get_loss()
     criterion = Loss(**config.loss_kwargs)
@@ -135,7 +116,7 @@ def train_model(model, config, logger):
             logger.log(f"Saved the model in {location}")
             torch.save(model.state_dict(), location)
             logger.log(f"Saved the model in {location}")
-            print(train_set.num_dimensions)
+
             if train_set.num_dimensions in {2, 3}:
                 all_ys = []
                 for i, (X) in enumerate(trainloader):
