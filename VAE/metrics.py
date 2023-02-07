@@ -45,20 +45,6 @@ class check_overlab_distrbution(nn.Module):
         if not os.path.exists(f"{dir_save}/images/"):
             os.makedirs(f"{dir_save}/images/")
         plt.savefig(f"{dir_save}/images/distrbution.png")
-        fig = plt.figure()
-        ax = fig.add_subplot(projection="3d")
-        ax.set_xlabel("Var:0")
-        ax.set_ylabel("Var:1")
-        ax.set_zlabel("Var:2")
-        ax.scatter(orig_dis[:, 0], orig_dis[:, 1], orig_dis[:, 2], s=0.5)
-        plt.savefig(f"{dir_save}/images/distrbution_orig.png")
-        fig = plt.figure()
-        ax = fig.add_subplot(projection="3d")
-        ax.set_xlabel("Var:0")
-        ax.set_ylabel("Var:1")
-        ax.set_zlabel("Var:2")
-        ax.scatter(predict_dis[:, 0], predict_dis[:, 1], predict_dis[:, 2], s=0.5)
-        plt.savefig(f"{dir_save}/images/predict_orig.png")
 
     def forward(self, x, y, dir_save):
         orig_dis = self.convert_to_normal(x)
