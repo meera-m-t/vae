@@ -7,6 +7,7 @@ import torch
 import torch.nn.functional as F
 from torchsummary import summary
 
+from VAE.metrics import check_overlab_distrbution
 from VAE.train_config import ExperimentationConfig
 from VAE.utils import SimpleLogger, make_dirs
 
@@ -17,16 +18,8 @@ def train_model(model, config, logger):
     TrainDataset = config.get_train_dataset()
     train_set = TrainDataset(**config.train_set_kwargs)
     logger.log(f"Training set size {len(train_set)}")
-
-    if config.valid_set_name:
-        ValidationDataset = config.get_valid_dataset()
-
-        valid_set = ValidationDataset(**config.valid_set_kwargs)
-
-        logger.log(f"Validation set size {len(valid_set)}")
-
-    logger.log("Model Summary:")
-    print(summary(model=model, input_size=train_set[0][0].shape))
+    # logger.log("Model Summary:")
+    # print(summary(model=model, input_size=train_set[0][0].shape))
 
     Optimizer = config.get_optimizer()
     opt = Optimizer(model.parameters(), **config.optimizer_kwargs)
@@ -50,14 +43,6 @@ def train_model(model, config, logger):
         num_workers=config.num_workers,
     )
 
-    if config.valid_set_name:
-        validloader = torch.utils.data.DataLoader(
-            valid_set,
-            batch_size=config.batch_size,
-            shuffle=True,
-            num_workers=config.num_workers,
-        )
-
     save_dir = (
         Path(config.save_dir).resolve()
         / f"{model.get_save_dir(len(train_set))}-epochs-{config.epochs}"
@@ -72,9 +57,6 @@ def train_model(model, config, logger):
     with (save_dir / "TrainConfig.json").open("w") as frozen_settings_file:
         json.dump(config.dict(exclude_none=True), frozen_settings_file, indent=2)
         logger.log(f"Saved training configuration in {save_dir / 'TrainConfig.json'}")
-
-    best_valid_loss = 5e33
-    trigger = 0
 
     # takes in a module and applies the specified weight initialization
     def weights_init_uniform_rule(m):
@@ -119,12 +101,14 @@ def train_model(model, config, logger):
 
             if train_set.num_dimensions in {2, 3}:
                 all_ys = []
+                all_orig = []
                 for i, (X) in enumerate(trainloader):
+                    all_orig.append(X)
                     Y = model(X.float().cuda())
                     all_ys.append(torch.squeeze((Y[0])))
                     # print(torch.nn.L1Loss(reduction="mean")(X.cuda(), torch.squeeze(Y[0])) )
                 ys = torch.cat(all_ys)
-
+                orig_data = torch.cat(all_orig)
                 kwargs = config.train_set_kwargs
                 kwargs["data"] = ys
                 from VAE.datasets import Dataset_LHS
@@ -133,6 +117,10 @@ def train_model(model, config, logger):
                 new_dataset.plot_dist(
                     save_dir / f"epoch-{epoch}-reconstructed-distribution.png"
                 )
+
+            overlap = check_overlab_distrbution()
+            overlap(orig_data, ys.detach().cpu(), save_dir)
+            print("Saved the model in {}".format(location))
 
         location = save_dir / "best_weights.pt"
 

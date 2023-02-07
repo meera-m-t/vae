@@ -1,11 +1,11 @@
 {
     "model_name": "VariationalAutoencoder",
     "mode": "train",
-    "epochs": 1000,
-    "batch_size": 100,
+    "epochs": 500,
+    "batch_size": 200,
     "scheduler":"CosineAnnealingLR",
     "scheduler_kwargs": {
-      "T_max": 1000,
+      "T_max": 100,
       "eta_min": 1e-5
     },
     "Early_Stopping":true,
@@ -35,7 +35,7 @@
     "test_metrics": [
       
     ],  
-    "save_frequency": 10, 
+    "save_frequency": 50, 
     "save_dir": "experiments/vae_vanilla",
     "num_workers": 14
   }

@@ -44,7 +44,7 @@ class Dataset_LHS(Dataset):
     def __init__(self, split=0, n_samples=10000, n_dims=3, data=None):
         self.data = data
         self.n_dims = n_dims
-        metadata = self.create_dataset(n_samples)
+        metadata = self.create_dataset(n_samples, n_dims)
         self.num_dimensions = n_dims
         self.train_metadata = metadata
 
@@ -56,12 +56,14 @@ class Dataset_LHS(Dataset):
         x = np.zeros((n, nt))
         x = np.random.uniform(-np.pi, np.pi, size=n)
         print(min(x), max(x), "x min and max values")
+        x = x.reshape(n_samples, n_dims)
+        print("input shape: ", x.shape)
         # means = x.mean(axis=0)
         # stds = x.std(axis=0)
         # normalized_data = (x - means) / stds
         # x_norm = (x - x.min()) / (x.max() - x.min())
         # x_norm = 2.0*x_norm - 1.0
-        return x.reshape(n_samples, n_dims)
+        return x
 
     def _get_metadata(self):
         metadata = self.train_metadata
